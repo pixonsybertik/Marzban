@@ -1,152 +1,436 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en" data-theme="light">
 <head>
-    <title>Subscription Information</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription - {{ user.username }}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
+        :root {
+            --bg: #f4f6f9;
+            --card: #ffffff;
+            --text: #1a1a2e;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --disabled: #94a3b8;
+            --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+            --radius: 16px;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --primary: #60a5fa;
+            --primary-hover: #3b82f6;
+            --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            transition: background 0.3s, color 0.3s;
         }
 
-        h1 {
-            margin-top: 0;
+        .container {
+            width: 100%;
+            max-width: 520px;
         }
 
-        .link-input {
-            margin-bottom: 10px;
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: all 0.3s;
         }
 
-        .copy-button {
-            margin-left: 10px;
+        .header {
+            padding: 28px 28px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .theme-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+
+        .theme-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .body {
+            padding: 28px;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .info-value {
+            font-weight: 600;
+            font-size: 0.95rem;
         }
 
         .status {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-weight: bold;
-            font-size: 16px;
-            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: capitalize;
         }
 
-        .active {
-            background-color: #4CAF50;
+        .status.active { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .status.limited { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        .status.expired { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .status.disabled { background: rgba(148, 163, 184, 0.15); color: var(--disabled); }
+
+        .progress-section {
+            margin-bottom: 28px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #8b5cf6);
+            border-radius: 999px;
+            transition: width 0.6s ease;
+        }
+
+        .links-section h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 14px;
+            color: var(--text-secondary);
+        }
+
+        .link-item {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .link-input {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 11px 14px;
+            font-size: 0.85rem;
+            color: var(--text);
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .link-input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 0 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .btn-copy {
+            background: var(--primary);
             color: white;
         }
 
-        .limited {
-            background-color: #F44336;
-            color: white;
+        .btn-copy:hover {
+            background: var(--primary-hover);
         }
 
-        .expired {
-            background-color: #FF9800;
-            color: white;
+        .btn-qr {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
         }
 
-        .disabled {
-            background-color: #9E9E9E;
-            color: white;
+        .btn-qr:hover {
+            background: var(--border);
         }
 
-        .qr-popup {
+        /* QR Modal */
+        .qr-overlay {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            padding: 10px 25px 25px 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
             display: none;
-            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
         }
 
-        .qr-close-button {
-            text-align: right;
-            margin-bottom: 5px;
-            margin-right: -15px;
+        .qr-modal {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 28px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: scaleIn 0.25s ease;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .qr-modal h3 {
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+
+        #qrCodeContainer {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .qr-close {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .qr-close:hover {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 16px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 480px) {
+            .body { padding: 20px; }
+            .header { padding: 20px; }
+            .link-item { flex-direction: column; }
+            .btn { width: 100%; }
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
-
 <body>
-    <h1>User Information</h1>
-    <p>Username: {{ user.username }}</p>
-    <p>Status: <span
-            class="status {% if user.status.value == 'active' %}active{% elif user.status.value == 'limited' %}limited{% elif user.status.value == 'expired' %}expired{% elif user.status.value == 'disabled' %}disabled{% endif %}">{{
-            user.status.value }}</span></p>
-    <p>Data Limit: {% if not user.data_limit %}∞{% else %}{{ user.data_limit | bytesformat }}{% endif %}</p>
-    <p>Data Used: {{ user.used_traffic | bytesformat }}{% if user.data_limit_reset_strategy != 'no_reset' %} (resets
-        every {{ user.data_limit_reset_strategy.value }}){% endif %}</p>
-    <p>Expiration Date:
-        {% if not user.expire %}
-        ∞
-        {% else %}
-        {% set current_timestamp = now().timestamp() %}
-        {% set remaining_days = ((user.expire - current_timestamp) // (24 * 3600)) %}
-        {{ user.expire | datetime }} ({{ remaining_days | int }} days
-        remaining)
-        {% endif %}</p>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>{{ user.username }}</h1>
+                <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">🌓</button>
+            </div>
 
-    {% if user.status == 'active' %}
-    <h2>Links:</h2>
-    <ul>
-        {% for link in user.links %}
-        <li>
-            <input type="text" value="{{ link }}" readonly>
-            <button class="copy-button" onclick="copyLink('{{ link }}', this)">Copy</button>
-            <button class="qr-button" data-link="{{ link }}">QR Code</button>
-        </li>
-        {% endfor %}
-    </ul>
-    <div class="qr-popup" id="qrPopup">
-        <div class="qr-close-button">
-            <button onclick="closeQrPopup()">X</button>
+            <div class="body">
+                <div class="user-info">
+                    <div class="info-row">
+                        <span class="info-label">Status</span>
+                        <span class="status {{ user.status.value }}">{{ user.status.value }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Data Limit</span>
+                        <span class="info-value">
+                            {% if not user.data_limit %}∞{% else %}{{ user.data_limit | bytesformat }}{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Data Used</span>
+                        <span class="info-value">{{ user.used_traffic | bytesformat }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Expiration</span>
+                        <span class="info-value">
+                            {% if not user.expire %}
+                                ∞
+                            {% else %}
+                                {% set current_timestamp = now().timestamp() %}
+                                {% set remaining_days = ((user.expire - current_timestamp) // (24 * 3600)) %}
+                                {{ remaining_days | int }} days left
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                {% if user.data_limit %}
+                <div class="progress-section">
+                    <div class="progress-header">
+                        <span>Traffic Usage</span>
+                        <span>
+                            {% set percent = (user.used_traffic / user.data_limit * 100) | round(1) %}
+                            {{ percent }}%
+                        </span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ [percent, 100] | min }}%"></div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if user.status.value == 'active' and user.links %}
+                <div class="links-section">
+                    <h2>Subscription Links</h2>
+                    {% for link in user.links %}
+                    <div class="link-item">
+                        <input class="link-input" type="text" value="{{ link }}" readonly>
+                        <button class="btn btn-copy" onclick="copyLink(this, '{{ link }}')">Copy</button>
+                        <button class="btn btn-qr" onclick="showQr('{{ link }}')">QR</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="footer">
+                Powered by Marzban
+            </div>
         </div>
-        <div id="qrCodeContainer"></div>
     </div>
-    {% endif %}
+
+    <!-- QR Modal -->
+    <div class="qr-overlay" id="qrOverlay" onclick="closeQr(event)">
+        <div class="qr-modal" onclick="event.stopPropagation()">
+            <h3>Scan QR Code</h3>
+            <div id="qrCodeContainer"></div>
+            <button class="qr-close" onclick="closeQr()">Close</button>
+        </div>
+    </div>
 
     <script>
-        function copyLink(link, button) {
-            const tempInput = document.createElement('input');
-            tempInput.setAttribute('value', link);
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-
-            button.textContent = 'Copied!';
-            setTimeout(function () {
-                button.textContent = 'Copy';
-            }, 1500);
+        // Theme
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const next = current === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
         }
 
-        const qrButtons = document.querySelectorAll('.qr-button');
-        const qrPopup = document.getElementById('qrPopup');
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', savedTheme);
 
-        qrButtons.forEach((qrButton) => {
-            qrButton.addEventListener('click', () => {
-                const link = qrButton.dataset.link;
-                while (qrCodeContainer.firstChild) {
-                    qrCodeContainer.removeChild(qrCodeContainer.firstChild);
-                }
-                const qrCode = new QRCode(qrCodeContainer, {
-                    text: link,
-                    width: 256,
-                    height: 256,
-                    correctLevel: QRCode.CorrectLevel.L
-                });
-                qrPopup.style.display = 'block';
+        // Copy
+        function copyLink(btn, link) {
+            navigator.clipboard.writeText(link).then(() => {
+                const original = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.style.background = 'var(--success)';
+                setTimeout(() => {
+                    btn.textContent = original;
+                    btn.style.background = '';
+                }, 1500);
             });
-        });
-        function closeQrPopup() {
-            document.getElementById('qrPopup').style.display = 'none';
+        }
+
+        // QR
+        function showQr(link) {
+            const container = document.getElementById('qrCodeContainer');
+            container.innerHTML = '';
+            new QRCode(container, {
+                text: link,
+                width: 220,
+                height: 220,
+                correctLevel: QRCode.CorrectLevel.M
+            });
+            document.getElementById('qrOverlay').style.display = 'flex';
+        }
+
+        function closeQr(e) {
+            if (!e || e.target === document.getElementById('qrOverlay')) {
+                document.getElementById('qrOverlay').style.display = 'none';
+            }
         }
     </script>
 </body>
-
 </html>
